@@ -12,6 +12,9 @@
 	(slot name)
 	(slot point))
 
+(deftemplate count-printed
+	(slot value))
+
 ;Startup
 (defrule startup
 	=>
@@ -25,7 +28,8 @@
 	(assert (restaurant (name H) (isSmoker "no") (minBudget 400) (maxBudget 1000) (dresscode "inrofmal") (hasWifi "no") (latitude -6.9525133) (longitude 107.6052906)))
 	(assert (restaurant (name I) (isSmoker "no") (minBudget 750) (maxBudget 2200) (dresscode "informal" "casual") (hasWifi "yes") (latitude -6.9586985) (longitude 107.7092281)))
 	(assert (restaurant (name J) (isSmoker "no") (minBudget 1500) (maxBudget 2000) (dresscode "casual") (hasWifi "yes") (latitude -6.2769732) (longitude 106.775133)))
-	(assert (get-name)))
+	(assert (get-name))
+	(assert (count-printed (value 0))))
 
 ; Menerima Input Nama
 (defrule get-name
@@ -149,10 +153,22 @@
 
 (defrule print
 	(declare (salience -10))
-  ?f <- (unprinted ?name)
+  ?f-1 <- (unprinted ?name)
+	?f-2 <- (count-printed (value ?value))
+	(test (< ?value 3))
   (count (name ?name) (point ?point))
   (forall (and (unprinted ?nameRes) (count (name ?nameRes) (point ?pointRes)))
     (test (<= ?pointRes ?point)))
   =>
-  (retract ?f)
-  (printout t ?name " has rating " ?point "." crlf))
+  (retract ?f-1)
+  (modify ?f-2 (value (+ ?value 1)))
+  (printout t ?value ". Restoran" ?name " : ")
+  (if (= ?point 5)
+  	then
+  	(printout t "Very recommendable" crlf)
+  	else
+  	(if (>= ?point 3)
+  		then
+  		(printout t "Recommendable" crlf)
+  		else
+  		(printout t "Not recommendable" crlf))))
