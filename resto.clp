@@ -10,7 +10,8 @@
 
 (deftemplate count
 	(slot name)
-	(slot point))
+	(slot point)
+	(slot distance))
 
 (deftemplate count-printed
 	(slot value))
@@ -115,7 +116,37 @@
 		(assert (get-wifi))
 		else
 		(retract ?f)
-		(assert (wifi ?input))))
+		(assert (wifi ?input)))
+		(assert (get-lat)))
+
+;Menerima lat. coordinate
+(defrule get-lat
+	?f <- (get-lat)
+	=>
+	(printout t "What are your lat. coordinate? ")
+	(bind ?input (readline))
+	(if (or (< (nth$ 1 (explode$ ?input)) -999) (> (nth$ 1 (explode$ ?input)) 999))
+		then
+		(retract ?f)
+		(assert (get-lat))
+		else
+		(retract ?f)
+		(assert (lat (nth$ 1 (explode$ ?input)))))
+		(assert (get-long)))
+
+;Menerima long. coordinate
+(defrule get-long
+	?f <- (get-long)
+	=>
+	(printout t "What are your long. coordinate? ")
+	(bind ?input (readline))
+	(if (or (< (nth$ 1 (explode$ ?input)) -999) (> (nth$ 1 (explode$ ?input)) 999))
+		then
+		(retract ?f)
+		(assert (get-long))
+		else
+		(retract ?f)
+		(assert (long (nth$ 1 (explode$ ?input))))))
 
 ;point
 (defrule calculate-point
@@ -125,6 +156,8 @@
   (max-budget ?maxB)
   (clothes ?clot)
   (wifi ?wf)
+  (lat ?lat)
+  (long ?long)
   =>
   (bind ?total 0)
   (if (eq ?bool ?boolSmoke)
@@ -142,7 +175,8 @@
   (if (eq ?wf ?has)
     then
     (bind ?total (+ ?total 1)))
-  (assert (count (name ?nameRes) (point ?total))))
+  (bind ?distance (sqrt (+ (** (- ?lat ?x) 2) (** (- ?long ?y) 2))))
+  (assert (count (name ?nameRes) (point ?total) (distance ?distance))))
 
 ;sort print
 (defrule unprinted
@@ -156,19 +190,19 @@
   ?f-1 <- (unprinted ?name)
 	?f-2 <- (count-printed (value ?value))
 	(test (< ?value 3))
-  (count (name ?name) (point ?point))
-  (forall (and (unprinted ?nameRes) (count (name ?nameRes) (point ?pointRes)))
+  (count (name ?name) (point ?point) (distance ?distance))
+  (forall (and (unprinted ?nameRes) (count (name ?nameRes) (point ?pointRes) (distance ?distanceRes)))
     (test (<= ?pointRes ?point)))
   =>
   (retract ?f-1)
   (modify ?f-2 (value (+ ?value 1)))
-  (printout t ?value ". Restoran" ?name " : ")
+  (printout t ?value ". Restaurant " ?name " : ")
   (if (= ?point 5)
   	then
-  	(printout t "Very recommendable" crlf)
+  	(printout t "Very recommendable (" ?distance ")." crlf)
   	else
   	(if (>= ?point 3)
   		then
-  		(printout t "Recommendable" crlf)
+  		(printout t "Recommendable (" ?distance ")." crlf)
   		else
-  		(printout t "Not recommendable" crlf))))
+  		(printout t "Not recommendable (" ?distance ")." crlf))))
