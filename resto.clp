@@ -13,8 +13,13 @@
 	(slot point)
 	(slot distance))
 
-(deftemplate count-printed
+(deftemplate counter
+	(slot name)
 	(slot value))
+
+(deftemplate priority
+	(slot name)
+	(slot recommendation))
 
 ;Startup
 (defrule startup
@@ -30,7 +35,8 @@
 	(assert (restaurant (name I) (isSmoker "no") (minBudget 750) (maxBudget 2200) (dresscode "informal" "casual") (hasWifi "yes") (latitude -6.9586985) (longitude 107.7092281)))
 	(assert (restaurant (name J) (isSmoker "no") (minBudget 1500) (maxBudget 2000) (dresscode "casual") (hasWifi "yes") (latitude -6.2769732) (longitude 106.775133)))
 	(assert (get-name))
-	(assert (count-printed (value 0))))
+	(assert (counter (name "sort") (value 0)))
+	(assert (counter (name "print") (value 0))))
 
 ; Menerima Input Nama
 (defrule get-name
@@ -179,30 +185,47 @@
   (assert (count (name ?nameRes) (point ?total) (distance ?distance))))
 
 ;sort print
+(defrule unsorted
+	(count (name ?name))
+	=>
+	(assert (unsorted ?name))
+)
+
+(defrule take-three
+	(declare (salience -10))
+	?f-1 <- (unsorted ?name)
+	?f-2 <- (counter (name "sort") (value ?value))
+	(test (< ?value 3))
+  (count (name ?name) (point ?point) (distance ?distance))
+  (forall (and (unsorted ?nameRes) (count (name ?nameRes) (point ?pointRes) (distance ?distanceRes)))
+    (test (<= ?pointRes ?point)))
+  =>
+  (retract ?f-1)
+  (modify ?f-2 (value (+ ?value 1)))
+  (if (= ?point 5)
+  	then
+  	(assert (priority (name ?name) (recommendation "Very recommendable")))
+  	else
+  	(if (>= ?point 3)
+  		then
+  		(assert (priority (name ?name) (recommendation "Recommendable")))
+  		else
+  		(assert (priority (name ?name) (recommendation "Not recommendable"))))))
+
 (defrule unprinted
-	(count (name ?name) (point ?point))
+	(priority (name ?name))
 	=>
 	(assert (unprinted ?name))
 )
 
 (defrule print
-	(declare (salience -10))
-  ?f-1 <- (unprinted ?name)
-	?f-2 <- (count-printed (value ?value))
-	(test (< ?value 3))
-  (count (name ?name) (point ?point) (distance ?distance))
-  (forall (and (unprinted ?nameRes) (count (name ?nameRes) (point ?pointRes) (distance ?distanceRes)))
-    (test (<= ?pointRes ?point)))
+	(count (name ?name) (point ?point) (distance ?distance))
+	(counter (name "sort") (value 3))
+	?f-1 <- (priority (name ?name) (recommendation ?recommendation))
+	?f-2 <- (counter (name "print") (value ?value))
+	?f-3 <- (unprinted ?name)
+	(forall (and (unprinted ?nameRes) (count (name ?nameRes) (point ?pointRes) (distance ?distanceRes)))
+    (test (<= ?distance ?distanceRes)))
   =>
-  (retract ?f-1)
-  (modify ?f-2 (value (+ ?value 1)))
-  (printout t ?value ". Restaurant " ?name " : ")
-  (if (= ?point 5)
-  	then
-  	(printout t "Very recommendable (" ?distance ")." crlf)
-  	else
-  	(if (>= ?point 3)
-  		then
-  		(printout t "Recommendable (" ?distance ")." crlf)
-  		else
-  		(printout t "Not recommendable (" ?distance ")." crlf))))
+  (retract ?f-3)
+  (printout t ?value ". Restaurant " ?name " : " ?recommendation " (" ?distance ")" crlf))
