@@ -139,3 +139,20 @@
     then
     (bind ?total (+ ?total 1)))
   (assert (count (name ?nameRes) (point ?total))))
+
+;sort print
+(defrule unprinted
+	(count (name ?name) (point ?point))
+	=>
+	(assert (unprinted ?name))
+)
+
+(defrule print
+	(declare (salience -10))
+  ?f <- (unprinted ?name)
+  (count (name ?name) (point ?point))
+  (forall (and (unprinted ?nameRes) (count (name ?nameRes) (point ?pointRes)))
+    (test (<= ?pointRes ?point)))
+  =>
+  (retract ?f)
+  (printout t ?name " has rating " ?point "." crlf))
