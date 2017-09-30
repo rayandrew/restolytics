@@ -8,6 +8,10 @@
 	(slot latitude)
 	(slot longitude))
 
+(deftemplate count
+	(slot name)
+	(slot point))
+
 ;Startup
 (defrule startup
 	=>
@@ -108,3 +112,30 @@
 		else
 		(retract ?f)
 		(assert (wifi ?input))))
+
+;point
+(defrule calculate-point
+  (restaurant (name ?nameRes) (isSmoker ?bool) (minBudget ?min) (maxBudget ?max) (dresscode $?use) (hasWifi ?has) (latitude ?x) (longitude ?y))
+  (smoke ?boolSmoke)
+  (min-budget ?minB)
+  (max-budget ?maxB)
+  (clothes ?clot)
+  (wifi ?wf)
+  =>
+  (bind ?total 0)
+  (if (eq ?bool ?boolSmoke)
+    then
+    (bind ?total (+ ?total 1)))
+  (if (>= ?min ?minB)
+    then
+    (bind ?total (+ ?total 1)))
+  (if (<= ?max ?maxB)
+    then
+    (bind ?total (+ ?total 1)))
+  (if (eq ?use ?clot)
+    then
+    (bind ?total (+ ?total 1)))
+  (if (eq ?wf ?has)
+    then
+    (bind ?total (+ ?total 1)))
+  (assert (count (name ?nameRes) (point ?total))))
