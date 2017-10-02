@@ -64,11 +64,15 @@
         (assert (get-smoke))
       else
         (retract ?f)
-        (assert (smoke "no")))
+        (assert (smoke "no"))
+        (assert (get-min-budget))
+      )
     else
     (retract ?f)
-    (assert (smoke ?input)))
-    (assert (get-min-budget)))
+    (assert (smoke ?input))
+    (assert (get-min-budget))
+  )
+)
 
 ;Menerima minimum budget
 (defrule get-min-budget
@@ -80,15 +84,19 @@
     then
       (retract ?f)
       (assert (min-budget 500))
+      (assert (get-max-budget))
     else
       (if (or (< (nth$ 1 (explode$ ?input)) 0) (> (nth$ 1 (explode$ ?input)) 9999))
         then
-        (retract ?f)
-        (assert (get-min-budget))
+          (retract ?f)
+          (assert (get-min-budget))
         else
-        (retract ?f)
-        (assert (min-budget (nth$ 1 (explode$ ?input))))))
-    (assert (get-max-budget)))
+          (retract ?f)
+          (assert (min-budget (nth$ 1 (explode$ ?input))))
+          (assert (get-max-budget))
+      )
+  )
+)
 
 ;Menerima maximum budget
 (defrule get-max-budget
@@ -101,16 +109,20 @@
     then
       (retract ?f)
       (assert (max-budget (+ ?x 1500)))
+      (assert (get-clothes))
     else
       (if (or (or (< (nth$ 1 (explode$ ?input)) 0) (> (nth$ 1 (explode$ ?input)) 9999))
                 (< (nth$ 1 (explode$ ?input)) ?x))
         then
-        (retract ?f)
-        (assert (get-max-budget))
+          (retract ?f)
+          (assert (get-max-budget))
         else
-        (retract ?f)
-        (assert (max-budget (nth$ 1 (explode$ ?input))))))
-    (assert (get-clothes)))
+          (retract ?f)
+          (assert (max-budget (nth$ 1 (explode$ ?input))))
+          (assert (get-clothes))
+      )
+  )
+)
 
 ;Menerima input clothes
 (defrule get-clothes
@@ -121,16 +133,20 @@
   (if (and (neq ?input "casual") (neq ?input "informal") (neq ?input "formal"))
     then
       (if (neq ?input "")
-      then
-        (retract ?f)
-        (assert (get-clothes))
-      else
-        (retract ?f)
-        (assert (clothes "casual")))
+        then
+          (retract ?f)
+          (assert (get-clothes))
+        else
+          (retract ?f)
+          (assert (clothes "casual"))
+          (assert (get-wifi))
+      )
     else
-    (retract ?f)
-    (assert (clothes ?input)))
-    (assert (get-wifi)))
+      (retract ?f)
+      (assert (clothes ?input))
+      (assert (get-wifi))
+  )
+)
 
 ;Menerima preferensi wifi
 (defrule get-wifi
@@ -141,16 +157,20 @@
   (if (and (neq ?input "yes") (neq ?input "no"))
     then
       (if (neq ?input "")
-      then
-        (retract ?f)
-        (assert (get-wifi))
-      else
-        (retract ?f)
-        (assert (wifi "yes")))
+        then
+          (retract ?f)
+          (assert (get-wifi))
+        else
+          (retract ?f)
+          (assert (wifi "yes"))
+          (assert (get-lat))
+      )
     else
-    (retract ?f)
-    (assert (wifi ?input)))
-    (assert (get-lat)))
+      (retract ?f)
+      (assert (wifi ?input))
+      (assert (get-lat))
+  )
+)
 
 ;Menerima lat. coordinate
 (defrule get-lat
@@ -162,15 +182,19 @@
     then
       (retract ?f)
       (assert (lat -6.9))
+      (assert (get-long))
     else
       (if (or (< (nth$ 1 (explode$ ?input)) -999) (> (nth$ 1 (explode$ ?input)) 999))
         then
-        (retract ?f)
-        (assert (get-lat))
+          (retract ?f)
+          (assert (get-lat))
         else
-        (retract ?f)
-        (assert (lat (nth$ 1 (explode$ ?input))))))
-        (assert (get-long)))
+          (retract ?f)
+          (assert (lat (nth$ 1 (explode$ ?input))))
+          (assert (get-long))
+      )
+  )
+)
 
 ;Menerima long. coordinate
 (defrule get-long
